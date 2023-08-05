@@ -3,27 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
   <title>Document</title>
 </head>
 <body>
-  <form id="avatarData" enctype="multipart/form-data">
-    <input type="file" multiple name="avatar" id="avatar"/>
-    <button id="submit" >enviar</button>
-  </form>
-  <h1 id="count"></h1>
-  <button id="clearcount" onclick="funcReset()" >Resetar</button>
-  <form id="valuecountform" action="#" onsubmit="setCount()">
+  <h1 id="title">Último post: <span id="count"></span></h1>
 
-    <input name="valuecount" onblur="setCount()" id="valuecount" type="number" />
-  </form>
-  <textarea id="description" id="" onchange="func()" cols="30" rows="10"></textarea>
-  <textarea id="hashtags" id="" onchange="func(true)" cols="30" rows="10"></textarea>
+  <div id="main-data">
+    <textarea id="description"onchange="func()" placeholder="Descrição" cols="30" rows="10"></textarea>
+    <textarea id="hashtags" onchange="func()" placeholder="Hashtags" cols="30" rows="10"></textarea>
 
-  <pre id="finaldescription" style="margin-bottom: 200px;"></pre>
-  <div id="finaldescription2" style="margin-bottom: 200px;">Generate a description to a  instagram post. The post shows _______Subject_______.  Also add exactly 30 hashtags, in one single line, relevant to the subject, use some emojis</div>
-  <div>
-    <button onclick="copyDesc2()">Copiar prompt</button>
-    <button onclick="copyDesc()">Copiar descrição</button>
+    <form id="avatarData" enctype="multipart/form-data">
+      <input type="file" multiple name="avatar" id="avatar"/>
+      <button id="submit">Enviar</button>
+    </form>
+
+    <pre id="finaldescription" style="margin-bottom: 50px;"></pre>
+    <div id="finaldescription2" style="margin-bottom: 50px;">Generate a description to a  instagram post. The post shows _______Subject_______.  Also add exactly 30 hashtags, in one single line, relevant to the subject, use some emojis</div>
+    <div>
+      <button onclick="copyDesc2()">Copiar prompt</button>
+      <button onclick="copyDesc()">Copiar descrição</button>
+    </div>
   </div>
 
   <script>
@@ -31,7 +31,24 @@
       event.preventDefault();
 
       const images = [];
-      const fileInput = document.querySelector('#avatar') ;
+      const fileInput = document.querySelector('#avatar');
+      const hashtags = document.getElementById("hashtags");
+      const description = document.getElementById("description");
+
+      if (fileInput.files.length == 0) {
+        alert("Imagens são requeridas");
+        return;
+      }
+
+      if (!description.value.trim()) {
+        alert("Descrição é requerida");
+        return;
+      }
+
+      if (!hashtags.value.trim()) {
+        alert("hashtags são requeridas");
+        return;
+      }
 
       for (const file of fileInput.files) {
         const formData = new FormData();
@@ -52,7 +69,7 @@
           });
       }
 
-      const hashtagsList = document.getElementById("hashtags").value.split(" ");
+      const hashtagsList = hashtags.value.split(" ");
 
       while (hashtagsList.length > 27) {
         hashtagsList.pop();
@@ -64,7 +81,7 @@
           body: JSON.stringify({
             images: images,
             hashtags: hashtagsList,
-            description: document.getElementById("description").value
+            description: description.value
           }),
           headers: {
             'Accept':'application/json',
@@ -72,64 +89,54 @@
           },
         };
 
-      await fetch("http://localhost:3000/post", myInit2)
+      const data = await fetch("http://localhost:3000/post", myInit2)
           .then(function(response) {
             return response.json();
           });
+
+      countFunc(data.lastDirectory);
+
+      hashtags.value = "";
+      description.value = "";
+      document.getElementById("finaldescription").innerHTML = "";
+      fileInput.value = null;
     };
 
     document.getElementById("avatarData").addEventListener("submit", formSubmit);
 
     copyDesc = () => {
-      countSave();
-      countFunc();
-
-      document.getElementById("hashtags").value = "";
-      document.getElementById("description").value = "";
       navigator.clipboard.writeText(document.getElementById("finaldescription").innerHTML);
-      document.getElementById("finaldescription").innerHTML = "";
     }
 
     copyDesc2 = () => {
       navigator.clipboard.writeText(document.getElementById("finaldescription2").innerHTML);
     }
 
-    const countFunc = () => {
-      const countSaved = parseInt(localStorage.getItem("count")) || 0;
+    const countFunc = (countNum) => {
       const count = document.getElementById("count");
 
-      count.innerHTML = countSaved
-
-      document.getElementById("valuecount").value = countSaved
+      count.innerHTML = countNum || 0;
     }
 
-    const countSave = () => {
-      const countSaved = parseInt(localStorage.getItem("count")) || 0;
+    const countSaved = async() => {
+      const myInit2 = {
+          method: 'POST',
+          cache: 'default',
+          headers: {
+            'Accept':'application/json',
+            'Content-Type':'application/json'
+          },
+        };
 
-      localStorage.setItem("count", countSaved + 1)
+      const data = await fetch("http://localhost:3000/countPosts", myInit2)
+          .then(function(response) {
+            return response.json();
+          });
+
+      countFunc(data.lastPost);
     }
 
-    const funcReset = () => {
-      localStorage.setItem("count", 0);
-
-      func();
-    }
-
-    const setCount = (event) => {
-      if (event) {
-        event.preventDefault();
-      }
-
-      const valuecount = document.getElementById("valuecount");
-      localStorage.setItem("count", valuecount.value);
-
-
-      func();
-    }
-
-    document.getElementById("valuecountform").addEventListener("submit", setCount);
-
-    const func  = (ishashtags) => {
+    const func  = () => {
       const hashtags = document.getElementById("hashtags");
       const hashtagsFinal = document.getElementById("hashtagsfinal");
       const description = document.getElementById("description");
@@ -142,16 +149,10 @@
         hashtagsList.pop();
       }
 
-      countFunc();
-
-      FinalDescription.innerHTML = `${description.value}\n.\n.\n.\n.\n.\n.\n.\n.\n ${hashtagsList.join(" ")} #ai #stablediffusion`;
+      FinalDescription.innerHTML = `${description.value}\n.\n.\n.\n.\n.\n.\n.\n.\n${hashtagsList.join(" ")} #ai #stablediffusion`;
     };
 
-    /* description.addEventListener("change", value => {
-      console.log(value);
-    }); */
-
-    countFunc();
+    countSaved();
   </script>
 </body>
 </html>

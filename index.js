@@ -26,19 +26,40 @@ app.use((_, res, next) => {
   next();
 });
 
-const getDescription = (description, hashtagsList) => `${description}\n.\n.\n.\n.\n.\n.\n.\n.\n ${hashtagsList.join(" ")} #ai #stablediffusion`;
+var uploadDir = './uploads/';
+var dir = './posts/';
+
+if (!fs.existsSync(uploadDir)) {
+  console.log("oi");
+  fs.mkdirSync(uploadDir);
+}
+
+if (!fs.existsSync(dir)) {
+  fs.mkdirSync(dir);
+}
+
+const getDirectories = async source =>
+    (await readdir(source, { withFileTypes: true }))
+      .filter(dirent => dirent.isDirectory())
+      .map(dirent => dirent.name);
+
+const getDescription = (description, hashtagsList) => `${description}\n.\n.\n.\n.\n.\n.\n.\n.\n${hashtagsList.join(" ")} #ai #stablediffusion`;
+
+app.post('/countPosts', upload.single("avatar"), async(req, res) => {
+  const lastDirectory = await getDirectories(absolutePath);
+  const postName = parseInt(lastDirectory.slice(-1)[0]) || 0;
+
+  const lastPostName = (postName > 10 ? postName : "0" + String(postName))
+
+  res.json({lastPost: lastPostName});
+});
 
 app.post('/saveImage', upload.single("avatar"), async(req, res) => {
   res.json({filename: req.file.originalname});
 });
 
 app.post('/post', async(req, res) => {
-  var dir = './posts/';
-
-  const getDirectories = async source =>
-    (await readdir(source, { withFileTypes: true }))
-      .filter(dirent => dirent.isDirectory())
-      .map(dirent => dirent.name);
+  let newPostName = '';
 
   if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir);
@@ -46,20 +67,14 @@ app.post('/post', async(req, res) => {
 
   const lastDirectory = await getDirectories(absolutePath);
   const postName = parseInt(lastDirectory.slice(-1)[0]) || 0;
-  console.log(postName);
-  const newDirectoryName = dir + "/" + (postName > 10 ? postName + 1 : "0" + String(postName + 1));
+
+  newPostName = (postName > 10 ? postName + 1 : "0" + String(postName + 1));
+  const newDirectoryName = dir + "/" + newPostName;
 
   if (!fs.existsSync(newDirectoryName)) {
-    fs.writeFile(
-      newDirectoryName + "/description.txt",
-      getDescription(req.body.description, req.body.hashtags),
-      function(err) {
-        if(err) {
-            return console.log(err);
-        }
-
-        console.log("The file was saved!");
-  });
+    const writeStream = fs.createWriteStream(newDirectoryName + "/description.txt");
+    writeStream.write(getDescription(req.body.description, req.body.hashtags));
+    writeStream.end();
 
     fs.mkdirSync(newDirectoryName);
     fs.mkdirSync(newDirectoryName + "/crap");
@@ -75,7 +90,7 @@ app.post('/post', async(req, res) => {
     }
   }
 
-  res.json({lastDirectory: lastDirectory.slice(-1)[0]});
+  res.json({lastDirectory: newPostName});
 });
 
 app.listen(port, () => {
