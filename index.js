@@ -32,7 +32,6 @@ var uploadDir = './uploads/';
 var dir = './posts/';
 
 if (!fs.existsSync(uploadDir)) {
-  console.log("oi");
   fs.mkdirSync(uploadDir);
 }
 
@@ -90,8 +89,7 @@ app.post('/post', async(req, res) => {
       var newPath = newDirectoryName + "/" +image;
 
       fs.rename(oldPath, newPath, function (err) {
-        if (err) throw err
-        console.log('Successfully renamed - AKA moved!')
+        if (err) throw err;
       });
     }
   }
@@ -100,5 +98,5 @@ app.post('/post', async(req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
+  console.log(`System running on port ${port}`);
 });
