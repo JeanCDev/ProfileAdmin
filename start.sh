@@ -1,5 +1,3 @@
-start file:///D:/Projetos/Meus%20Apps/ProfileAdmin/index.html;
-
-cd D:/Projetos/Meus%20Apps/ProfileAdmin;
+start http://localhost:3000/;
 
 npm start;

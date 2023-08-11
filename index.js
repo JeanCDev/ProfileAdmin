@@ -4,6 +4,7 @@ const {resolve} = require('path');
 const readdir = require('fs/promises').readdir;
 const absolutePath = resolve('./posts');
 const multer = require('multer');
+const path = require('path');
 
 var storage = multer.diskStorage({
   destination: function (_, _, cb) {
@@ -18,6 +19,7 @@ const upload = multer({ dest: './uploads/', storage: storage });
 const app = express();
 const port = 3000;
 
+app.use(express.static(__dirname + '/public/'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use((_, res, next) => {
@@ -43,7 +45,11 @@ const getDirectories = async source =>
       .filter(dirent => dirent.isDirectory())
       .map(dirent => dirent.name);
 
-const getDescription = (description, hashtagsList) => `${description}\n.\n.\n.\n.\n.\n.\n.\n.\n${hashtagsList.join(" ")} #ai #stablediffusion`;
+const getDescription = (description, hashtagsList, postName) => `${description}\n.\n.\n.\n.\n.\n.\n.\n.\nPost n°${postName}\n${hashtagsList.join(" ")} #ai #stablediffusion`;
+
+app.get('/', function(req, res) {
+  res.sendFile(path.join(__dirname, '/index.html'));
+});
 
 app.post('/countPosts', upload.single("avatar"), async(req, res) => {
   const lastDirectory = await getDirectories(absolutePath);
@@ -73,7 +79,7 @@ app.post('/post', async(req, res) => {
 
   if (!fs.existsSync(newDirectoryName)) {
     const writeStream = fs.createWriteStream(newDirectoryName + "/description.txt");
-    writeStream.write(getDescription(req.body.description, req.body.hashtags));
+    writeStream.write(getDescription(req.body.description, req.body.hashtags, newPostName));
     writeStream.end();
 
     fs.mkdirSync(newDirectoryName);
