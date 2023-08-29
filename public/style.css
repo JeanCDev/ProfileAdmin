@@ -25,16 +25,61 @@
 }
 
 #avatarData {
+  width: 35%;
   display: flex;
+  align-items: center;
   flex-direction: column;
 }
 
-#avatarData button {
+#avatarData div {
+  gap: 16px;
+  width: 100%;
+  display: grid;
+  flex-direction: row;
+  grid-template-columns: 1fr 1fr;
+}
+
+#avatarData div button {
+  flex: 1;
   margin-top: 15px;
+  margin-bottom: 35px;
   height: 50px;
-  color: white;
   font-size: large;
   background-color: #218838;
   border: 2px solid #12491e;
   border-radius: 15px;
+}
+
+#avatarData div button {
+  color: white;
+  background-color: #218838;
+  border: 2px solid #12491e;
+}
+
+#avatarData div button#clear {
+  color: #686868;
+  background-color: #dadada;
+  border: 2px solid #646464;
+}
+
+#preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 334px;
+}
+
+#preview h1 {
+  font-family: sans-serif;
+  color: #5a5a5a71;
+}
+
+#preview div {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+}
+
+#preview img {
+  max-width: 300px;
 }

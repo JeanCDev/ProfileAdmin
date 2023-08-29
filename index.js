@@ -5,6 +5,7 @@ const readdir = require('fs/promises').readdir;
 const absolutePath = resolve('./posts');
 const multer = require('multer');
 const path = require('path');
+const configuration = require('./public/configurations.json');
 
 var storage = multer.diskStorage({
   destination: function (_, _, cb) {
@@ -54,9 +55,9 @@ app.post('/countPosts', upload.single("avatar"), async(req, res) => {
   const lastDirectory = await getDirectories(absolutePath);
   const postName = parseInt(lastDirectory.slice(-1)[0]) || 0;
 
-  const lastPostName = (postName > 10 ? postName : "0" + String(postName))
+  const lastPostName = (postName > 10 ? postName : "0" + String(postName));
 
-  res.json({lastPost: lastPostName});
+  res.json({lastPost: lastPostName, configuration: configuration});
 });
 
 app.post('/saveImage', upload.single("avatar"), async(req, res) => {
