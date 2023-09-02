@@ -13,6 +13,7 @@
     <h1 id="title">Último post: <span id="count"></span></h1>
 
     <textarea id="description" placeholder="Descrição" cols="30" rows="10"></textarea>
+    <p style="margin-bottom: 0;">Quantidade de hashtags: <span id="hashtagsCount">0</span></p>
     <textarea id="hashtags" onblur="func()" placeholder="Hashtags" cols="30" rows="10"></textarea>
 
     <form id="avatarData" enctype="multipart/form-data">
@@ -25,7 +26,7 @@
 
     <div id="hashtagbuttons"></div>
     <!-- <pre id="finaldescription" style="margin-bottom: 50px;"></pre> -->
-    <div id="gptprompt" style="margin-bottom: 50px;">Generate a description to a  instagram post. The post shows _______Subject_______.  Also add exactly 30 hashtags, in one single line, relevant to the subject, use some emojis</div>
+    <div id="gptprompt" style="margin-bottom: 50px;">Generate a description to a  instagram post. The post shows _______Subject_______.  Also add some hashtags, in one single line, relevant to the subject, use some emojis</div>
     <div>
       <button onclick="copyDesc2()">Copiar prompt</button>
       <button onclick="copyDesc()">Copiar descrição</button>
@@ -112,6 +113,7 @@
       document.getElementById("description").value = "";
       document.getElementById("hashtags").value = defaultHashTags.join(" ");
       document.getElementById("preview").innerHTML = "<h1>Nenhuma imagem selecionada ¯\\\_(ツ)_/¯</h1>";
+      countHashTags();
     }
 
     document.getElementById("avatarData").addEventListener("submit", formSubmit);
@@ -182,13 +184,13 @@
       createHashtagButtons(data.configuration.hashtagsList);
 
       document.getElementById("hashtags").value = defaultHashTags.join(" ");
+
+      countHashTags();
     }
 
     const func  = () => {
       const hashtags = document.getElementById("hashtags");
-      const hashtagsFinal = document.getElementById("hashtagsfinal");
       const description = document.getElementById("description");
-      const descriptionFinal = document.getElementById("descriptionfinal");
 
       const hashtagsList = hashtags.value.split(" ");
       const finalList = [];
@@ -204,7 +206,15 @@
       }
 
       hashtags.value = `${finalList.join(" ")} ${defaultHashTags.join(" ")}`;
+      countHashTags();
     };
+
+    const countHashTags = () => {
+      const hashtags = document.getElementById("hashtags");
+      const hashtagsCount = document.getElementById("hashtagsCount");
+
+      hashtagsCount.innerHTML = hashtags.value.trim().split(" ").length;
+    }
 
     countSaved();
   </script>
